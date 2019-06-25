@@ -15,7 +15,6 @@ COPY imagefiles/cmake.sh /usr/local/bin/cmake
 COPY imagefiles/ccmake.sh /usr/local/bin/ccmake
 COPY imagefiles/entrypoint.sh /entry/
 
-
 ENV AS=${CROSS_ROOT}/bin/${CROSS_PFX}-as \
 	LD=${CROSS_ROOT}/bin/${CROSS_PFX}-ld \
     AR=${CROSS_ROOT}/bin/${CROSS_PFX}-ar \
