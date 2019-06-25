@@ -1,4 +1,4 @@
-FROM sebastianbergmann/amiga-gcc
+FROM sebastianbergmann/amiga-gcc:latest
 MAINTAINER Marlon Beijer "marlon@amigadev.com"
 
 RUN apt-get update && apt-get install -y apt-utils cmake wget git make
