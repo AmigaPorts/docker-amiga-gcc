@@ -1,14 +1,16 @@
-FROM sebastianbergmann/amiga-gcc:latest
+FROM ubuntu:19.04
 
 ENV CROSS_PFX m68k-amigaos
 
 # Temporary fix
+COPY --from=sebastianbergmann/amiga-gcc:latest /opt/amiga ./opt/amiga
 RUN ln -s /opt/amiga /opt/${CROSS_PFX}
+
 
 # START COMMON
 MAINTAINER Marlon Beijer "marlon@amigadev.com"
 
-RUN apt-get update && apt-get install -y apt-utils cmake wget git make
+RUN apt-get update && apt-get install -y apt-utils cmake wget git make autoconf pkgconfig lhasa 
 RUN echo "root:root" | chpasswd
 
 ENV CROSS_ROOT /opt/${CROSS_PFX}
