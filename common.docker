@@ -3,10 +3,9 @@ MAINTAINER Marlon Beijer "marlon@amigadev.com"
 RUN apt-get update && apt-get install -y apt-utils cmake wget git make autoconf pkg-config lhasa 
 RUN echo "root:root" | chpasswd
 
-ENV CROSS_ROOT /opt/${CROSS_PFX}
+RUN ln -s /opt/${CROSS_PFX} /tools
 
-# Temporary fix
-RUN rm /opt/${CROSS_PFX} ; ln -s /opt/amiga /opt/${CROSS_PFX}
+ENV CROSS_ROOT /opt/${CROSS_PFX}
 
 WORKDIR /work
 ENTRYPOINT ["/entry/entrypoint.sh"]
