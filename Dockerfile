@@ -24,6 +24,7 @@ ENV AS=${CROSS_ROOT}/bin/${CROSS_PFX}-as \
     CC=${CROSS_ROOT}/bin/${CROSS_PFX}-gcc \
     CXX=${CROSS_ROOT}/bin/${CROSS_PFX}-g++ \
 	RANLIB=${CROSS_ROOT}/bin/${CROSS_PFX}-ranlib
-
+	
 COPY dependencies/toolchains/${CROSS_PFX}.cmake ${CROSS_ROOT}/lib/
 ENV CMAKE_TOOLCHAIN_FILE ${CROSS_ROOT}/lib/${CROSS_PFX}.cmake
+ENV CMAKE_PREFIX_PATH /opt/${CROSS_PFX}:/opt/${CROSS_PFX}/usr 
