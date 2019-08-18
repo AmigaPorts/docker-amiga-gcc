@@ -1,4 +1,7 @@
 FROM sebastianbergmann/amiga-gcc:latest as build-env
+RUN apt-get update && apt-get install -y apt-utils cmake wget git make autoconf pkg-config lhasa 
+RUN git clone https://github.com/AmigaPorts/aros-stuff.git
+RUN cd aros-stuff/pthreads && make install
 
 FROM ubuntu:19.04
 
