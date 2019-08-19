@@ -12,7 +12,7 @@ RUN ln -s /opt/amiga /opt/${CROSS_PFX}
 # START COMMON
 MAINTAINER Marlon Beijer "marlon@amigadev.com"
 
-RUN apt-get update && apt-get install -y apt-utils cmake wget git make autoconf pkg-config lhasa 
+RUN apt-get update && apt-get install -y apt-utils cmake wget curl git make automake autoconf pkg-config lhasa unzip gcc-multilib libtool 
 RUN echo "root:root" | chpasswd
 
 RUN ln -s /opt/${CROSS_PFX} /tools

@@ -9,7 +9,7 @@ COPY --from=build-env /opt/${CROSS_PFX} ./opt/${CROSS_PFX}
 # START COMMON
 MAINTAINER Marlon Beijer "marlon@amigadev.com"
 
-RUN dpkg --add-architecture i386 && apt-get update && apt-get install -y apt-utils cmake wget git make autoconf pkg-config lhasa libc6:i386 libstdc++6:i386
+RUN dpkg --add-architecture i386 && apt-get update && apt-get install -y cmake wget curl git make automake autoconf pkg-config lhasa unzip gcc-multilib libtool libc6:i386 libstdc++6:i386
 RUN echo "root:root" | chpasswd
 
 RUN ln -s /opt/${CROSS_PFX} /tools
