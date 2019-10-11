@@ -5,7 +5,7 @@ FROM amigadev/docker-base:latest
 ENV CROSS_PFX m68k-amigaos
 
 # Temporary fix
-COPY --from=build-env /opt/amiga ./opt/amiga
+COPY --from=build-env /opt/amiga /opt/amiga
 RUN ln -s /opt/amiga /opt/${CROSS_PFX}
 
 

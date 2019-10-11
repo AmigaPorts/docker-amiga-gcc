@@ -4,7 +4,7 @@ FROM amigadev/docker-base:latest
 
 ENV CROSS_PFX ppc-morphos
 
-COPY --from=build-env /opt/${CROSS_PFX} ./opt/${CROSS_PFX}
+COPY --from=build-env /opt/${CROSS_PFX} /opt/${CROSS_PFX}
 
 # START COMMON
 MAINTAINER Marlon Beijer "marlon@amigadev.com"
