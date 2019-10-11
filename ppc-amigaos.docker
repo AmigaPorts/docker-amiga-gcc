@@ -1,6 +1,6 @@
 FROM amigadev/adtools:latest as build-env
 
-FROM ubuntu:19.04
+FROM amigadev/docker-base:latest
 
 ENV CROSS_PFX ppc-amigaos
 

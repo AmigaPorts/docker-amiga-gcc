@@ -1,6 +1,6 @@
 FROM sebastianbergmann/amiga-gcc:latest as build-env
 
-FROM ubuntu:19.04
+FROM amigadev/docker-base:latest
 
 ENV CROSS_PFX m68k-amigaos
 
