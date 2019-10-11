@@ -38,6 +38,3 @@ ENV CMAKE_TOOLCHAIN_FILE ${CROSS_ROOT}/lib/${CROSS_PFX}.cmake
 ENV CMAKE_PREFIX_PATH /opt/${CROSS_PFX}:/opt/${CROSS_PFX}/usr
 ENV PATH ${PATH}:${CROSS_ROOT}/bin
 # END COMMON
-
-RUN git clone https://github.com/AmigaPorts/aros-stuff.git
-RUN cd aros-stuff/pthreads && make install
