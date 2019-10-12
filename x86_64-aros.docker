@@ -1,0 +1,43 @@
+FROM amigadev/morphos-cross-toolchain:latest as build-env
+
+FROM amigadev/docker-base:latest
+
+ENV CROSS_PFX x86_64-aros
+ENV CROSS_ROOT /opt/${CROSS_PFX}
+
+# START COMMON
+MAINTAINER Marlon Beijer "marlon@amigadev.com"
+
+RUN apt update && apt install -y python-pip genisoimage wget curl git make automake autoconf pkg-config unzip gcc-multilib libtool zlib1g g++ libpng-dev libx11-dev libxcursor-dev libgl1-mesa-dev gawk bison flex netpbm cmake gperf libswitch-perl libasound2-dev python-mako
+# RUN apt install -y zzlib1g-dev
+RUN echo "root:root" | chpasswd
+
+RUN ln -s /usr/bin/genisoimage /usr/local/bin/mkisofs
+
+# Install proper LHA
+RUN cd /tmp/ && git clone https://github.com/AmigaPorts/lha.git && cd lha && autoreconf -is && ./configure && make && make check && make install
+
+# Install xdftool
+RUN pip install amitools
+
+WORKDIR /work
+
+ENTRYPOINT ["/entry/entrypoint.sh"]
+
+COPY imagefiles/cmake.sh /usr/local/bin/cmake
+COPY imagefiles/ccmake.sh /usr/local/bin/ccmake
+COPY imagefiles/entrypoint.sh /entry/
+
+ENV AS=${CROSS_ROOT}/bin/${CROSS_PFX}-as \
+	LD=${CROSS_ROOT}/bin/${CROSS_PFX}-ld \
+    AR=${CROSS_ROOT}/bin/${CROSS_PFX}-ar \
+    CC=${CROSS_ROOT}/bin/${CROSS_PFX}-gcc \
+    CXX=${CROSS_ROOT}/bin/${CROSS_PFX}-g++ \
+	RANLIB=${CROSS_ROOT}/bin/${CROSS_PFX}-ranlib
+	
+COPY dependencies/toolchains/${CROSS_PFX}.cmake ${CROSS_ROOT}/lib/
+ENV CMAKE_TOOLCHAIN_FILE ${CROSS_ROOT}/lib/${CROSS_PFX}.cmake
+ENV CMAKE_PREFIX_PATH /opt/${CROSS_PFX}:/opt/${CROSS_PFX}/usr
+ENV PATH ${PATH}:${CROSS_ROOT}/bin
+
+# END COMMON
