@@ -1,4 +1,4 @@
-FROM amigadev/arosv1-cross-toolchain:latest as build-env
+FROM amigadev/arosv1-cross-toolchain:x86_64 as build-env
 
 ENV CROSS_PFX x86_64-aros
 ENV CROSS_ROOT /opt/${CROSS_PFX}
