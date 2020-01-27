@@ -1,4 +1,4 @@
-FROM sebastianbergmann/amiga-gcc:latest as build-env
+FROM amigadev/m68k-amigaos-gcc:latest as build-env
 
 FROM amigadev/docker-base:latest
 
