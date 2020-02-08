@@ -39,6 +39,7 @@ RUN ln -sf ${CROSS_ROOT}/bin/${CROSS_PFX}-as /usr/bin/as && \
 COPY dependencies/toolchains/${CROSS_PFX}.cmake ${CROSS_ROOT}/lib/
 COPY dependencies/toolchains/Modules/${CROSS_PFX} /CMakeModules
 RUN mv -fv /CMakeModules/* /usr/share/cmake-`cmake --version|awk '{ print $3;exit }'|awk -F. '{print $1"."$2}'`/Modules/
+RUN ln -s /usr/share/cmake-`cmake --version|awk '{ print $3;exit }'|awk -F. '{print $1"."$2}'`/Modules/Platform/Generic.cmake /usr/share/cmake-`cmake --version|awk '{ print $3;exit }'|awk -F. '{print $1"."$2}'`/Modules/Platform/AmigaOS.cmake
 ENV CMAKE_TOOLCHAIN_FILE ${CROSS_ROOT}/lib/${CROSS_PFX}.cmake
 ENV CMAKE_PREFIX_PATH /opt/${CROSS_PFX}:/opt/${CROSS_PFX}/usr
 ENV PATH ${PATH}:${CROSS_ROOT}/bin
