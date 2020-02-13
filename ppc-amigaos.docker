@@ -3,12 +3,12 @@ FROM amigadev/adtools:latest as build-env
 FROM amigadev/docker-base:latest
 
 ENV CROSS_PFX ppc-amigaos
+ENV OS_NAME AmigaOS
 
 COPY --from=build-env /opt/${CROSS_PFX} /opt/${CROSS_PFX}
 
 # START COMMON
 MAINTAINER Marlon Beijer "marlon@amigadev.com"
-
 RUN apt purge -y gcc g++ flex bison gettext texinfo binutils libgmp-dev libmpfr-dev libmpc-dev libncurses-dev && apt autoremove -y
 RUN echo "root:root" | chpasswd
 RUN ln -s /opt/${CROSS_PFX} /tools
@@ -36,6 +36,9 @@ RUN ln -sf ${CROSS_ROOT}/bin/${CROSS_PFX}-as /usr/bin/as && \
 	ln -sf ${CROSS_ROOT}/bin/${CROSS_PFX}-ranlib /usr/bin/ranlib
 
 COPY dependencies/toolchains/${CROSS_PFX}.cmake ${CROSS_ROOT}/lib/
+COPY dependencies/toolchains/Modules/${CROSS_PFX} /CMakeModules
+RUN mv -fv /CMakeModules/* /usr/share/cmake-`cmake --version|awk '{ print $3;exit }'|awk -F. '{print $1"."$2}'`/Modules/
+RUN ln -s /usr/share/cmake-`cmake --version|awk '{ print $3;exit }'|awk -F. '{print $1"."$2}'`/Modules/Platform/Generic.cmake /usr/share/cmake-`cmake --version|awk '{ print $3;exit }'|awk -F. '{print $1"."$2}'`/Modules/Platform/${OS_NAME}.cmake
 ENV CMAKE_TOOLCHAIN_FILE ${CROSS_ROOT}/lib/${CROSS_PFX}.cmake
 ENV CMAKE_PREFIX_PATH /opt/${CROSS_PFX}:/opt/${CROSS_PFX}/usr
 ENV PATH ${PATH}:${CROSS_ROOT}/bin
