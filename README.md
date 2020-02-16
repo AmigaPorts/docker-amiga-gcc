@@ -19,7 +19,7 @@ MorphOS 3.9+ | MorphOS Team SDK 3.14 - gcc 9 | **Yes**
 
 Example for AROSv1 x86_64
 
-docker build -t "aros:arosv1-cross-toolchain" --rm -f x86_64-aros.docker .
+docker build -t "amigadev/crosstools:x86_64-aros." --rm -f x86_64-aros.docker .
 
 For other toolchains, use the appropriate Dockerfile:
 
