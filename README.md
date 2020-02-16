@@ -8,7 +8,7 @@ Platform | Toolchain | Supported
 ------------ | ------------ | -------------
 AmigaOS 3.x | @bebbo toolchain - gcc 6 | **Yes**
 AmigaOS 4.x | @sba1 adtools - gcc 8 | **Yes**
-MorphOS 3.9+ | MorphOS Team (un)official tools - gcc 6 | **Yes**
+MorphOS 3.9+ | MorphOS Team SDK 3.14 - gcc 9 | **Yes**
 ~WarpOS~ | ~gcc 6~ | Not yet
 ~AROS ABIv1 x86_64~ | ~AROS Team Official - gcc 9~ | Not yet
 ~AROS ABIv1 x86~ | ~AROS Team Official - gcc 9~ | Not yet
