@@ -3,6 +3,8 @@ FROM amigadev/arosv1-cross-toolchain:x86_64 as build-env
 ENV CROSS_PFX x86_64-aros
 ENV CROSS_ROOT /opt/${CROSS_PFX}
 
+COPY --from=build-env /opt/${CROSS_PFX} ./opt/${CROSS_PFX}
+
 # START COMMON
 MAINTAINER Marlon Beijer "marlon@amigadev.com"
 
@@ -14,12 +16,12 @@ COPY imagefiles/ccmake.sh /usr/local/bin/ccmake
 COPY imagefiles/entrypoint.sh /entry/
 
 ENV AS=${CROSS_ROOT}/bin/${CROSS_PFX}-as \
-	LD=${CROSS_ROOT}/bin/${CROSS_PFX}-ld \
+    LD=${CROSS_ROOT}/bin/${CROSS_PFX}-ld \
     AR=${CROSS_ROOT}/bin/${CROSS_PFX}-ar \
     CC=${CROSS_ROOT}/bin/${CROSS_PFX}-gcc \
     CXX=${CROSS_ROOT}/bin/${CROSS_PFX}-g++ \
-	RANLIB=${CROSS_ROOT}/bin/${CROSS_PFX}-ranlib
-	
+    RANLIB=${CROSS_ROOT}/bin/${CROSS_PFX}-ranlib
+
 COPY dependencies/toolchains/${CROSS_PFX}.cmake ${CROSS_ROOT}/lib/
 ENV CMAKE_TOOLCHAIN_FILE ${CROSS_ROOT}/lib/${CROSS_PFX}.cmake
 ENV CMAKE_PREFIX_PATH /opt/${CROSS_PFX}:/opt/${CROSS_PFX}/usr

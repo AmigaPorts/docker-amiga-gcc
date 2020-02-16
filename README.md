@@ -19,7 +19,7 @@ MorphOS 3.9+ | MorphOS Team SDK 3.14 - gcc 9 | **Yes**
 
 Example for AROSv1 x86_64
 
-docker build -t "amigadev/crosstools:x86_64-aros." --rm -f x86_64-aros.docker .
+docker build -t "amigadev/crosstools:x86_64-aros" --rm -f x86_64-aros.docker .
 
 For other toolchains, use the appropriate Dockerfile:
 
@@ -76,13 +76,13 @@ docker run --rm \
     -it amigadev/crosstools:ppc-morphos bash
 ```
 
-### ArosV1 x86_64 example
+### AROS (v1) x86_64 example
 ```bashS
 docker run --rm \
     -v ${PWD}:/work \
     -v /tmp/aros:/tmp/aros \
     -e USER=$( id -u ) -e GROUP=$( id -g ) \
-    -it aros:arosv1-cross-toolchain bash
+    -it amigadev/crosstools:x86_64-aros bash
 ```
 
 * *${PWD}* is the current dir
