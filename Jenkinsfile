@@ -88,7 +88,7 @@ node('master') {
 	def project = readJSON file: "JenkinsEnv.json";
 
 	project.builds.each { v ->
-		branches["Build ${v.DockerRoot}/${v.DockerImage}"] = { 
+		branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = { 
 			node {
 				buildStep(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.BuildIfSuccessful)
 			}
