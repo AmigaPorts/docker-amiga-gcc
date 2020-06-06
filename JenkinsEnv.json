@@ -1,0 +1,32 @@
+{
+    "builds": [
+        {
+            "DockerRoot": "amigadev",
+            "DockerImage": "crosstools",
+            "DockerTag": "m68k-amigaos",
+            "Dockerfile": "m68k-amigaos.docker",
+            "BuildIfSuccessful": ""
+        },
+        {
+            "DockerRoot": "amigadev",
+            "DockerImage": "crosstools",
+            "DockerTag": "ppc-amigaos",
+            "Dockerfile": "ppc-amigaos.docker",
+            "BuildIfSuccessful": ""
+        },
+        {
+            "DockerRoot": "amigadev",
+            "DockerImage": "crosstools",
+            "DockerTag": "ppc-morphos",
+            "Dockerfile": "ppc-morphos.docker",
+            "BuildIfSuccessful": ""
+        },
+        {
+            "DockerRoot": "amigadev",
+            "DockerImage": "crosstools",
+            "DockerTag": "x86_64-aros",
+            "Dockerfile": "x86_64-aros.docker",
+            "BuildIfSuccessful": ""
+        }
+    ]
+}
