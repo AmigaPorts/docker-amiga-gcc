@@ -78,7 +78,12 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, BUILD_NEXT) {
 }
 
 node('master') {
-	killall_jobs();
+	properties([[$class: 'ParametersDefinitionProperty', parameterDefinitions: [[$class: 'StringParameterDefinition', name: 'BUILD_IMAGE', defaultValue: 'all']]]])
+
+	if (BUILD_IMAGE.equals('all')) {
+		killall_jobs();
+	}
+
 	def fixed_job_name = env.JOB_NAME.replace('%2F','/');
 	slackSend color: "good", channel: "#jenkins", message: "Build Started: ${fixed_job_name} #${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)";
 	
@@ -87,12 +92,16 @@ node('master') {
 	def branches = [:]
 	def project = readJSON file: "JenkinsEnv.json";
 
-	project.builds.each { v ->
-		branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = { 
-			node {
-				buildStep(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.BuildIfSuccessful)
+	if (BUILD_IMAGE.equals('all')) {
+		project.builds.each { v ->
+			branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = { 
+				node {
+					buildStep(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.BuildIfSuccessful)
+				}
 			}
 		}
+	} else {
+		echo("${BUILD_IMAGE}");
 	}
 	
 	sh "rm -rf ./*"
