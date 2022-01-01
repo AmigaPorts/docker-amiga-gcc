@@ -104,7 +104,7 @@ node('master') {
 	} else {
 		echo("Building: ${BUILD_IMAGE}");
 		project.builds.each { v ->
-			if (v.DockerTag.equals("${BUILD_IMAGE}")) {
+			if ("${v.DockerTag}".equals("${BUILD_IMAGE}")) {
 				branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = { 
 					node {
 						buildStep(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.BuildIfSuccessful)
