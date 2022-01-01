@@ -77,9 +77,9 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, BUILD_NEXT) {
 	}
 }
 
+properties([[$class: 'ParametersDefinitionProperty', parameterDefinitions: [[$class: 'StringParameterDefinition', name: 'BUILD_IMAGE', defaultValue: 'all']]]])
+
 node('master') {
-	def BUILD_IMAGE = '';
-	properties([[$class: 'ParametersDefinitionProperty', parameterDefinitions: [[$class: 'StringParameterDefinition', name: 'BUILD_IMAGE', defaultValue: 'all']]]])
 
 	if (BUILD_IMAGE.equals('all')) {
 		killall_jobs();
