@@ -1,4 +1,4 @@
-# AmigDev Docker Crosstools
+# AmigaDev Docker Crosstools
 
 Currently AmigaOS 3.x, AmigaOS 4.x and MorphOS 3.9+ are supported.
 WarpOS and AROS will get supported in the forseeable future
