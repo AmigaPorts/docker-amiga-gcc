@@ -5,14 +5,18 @@ FROM amigadev/${BUILD_PFX}:latest as build-env
 
 FROM amigadev/docker-base:latest
 
-ENV CROSS_PFX ${BUILD_PFX}
-ENV OS_NAME ${BUILD_OS}
+ARG BUILD_OS
+ARG BUILD_PFX
+
+ENV CROSS_PFX $BUILD_PFX
+ENV OS_NAME $BUILD_OS
 
 COPY --from=build-env /opt/${CROSS_PFX} /opt/${CROSS_PFX}
 
 # START COMMON
 MAINTAINER Marlon Beijer "marlon@amigadev.com"
 RUN apt update && apt install -y libtool automake autoconf && apt autoremove -y
+RUN echo ${CROSS_PFX}
 RUN echo "root:root" | chpasswd
 RUN chmod 777 -R /opt/${CROSS_PFX}
 RUN ln -s /opt/${CROSS_PFX} /tools
