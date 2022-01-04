@@ -1,9 +1,12 @@
-FROM amigadev/morphos-cross-toolchain:latest as build-env
+ARG BUILD_OS
+ARG BUILD_PFX
+
+FROM amigadev/${BUILD_PFX}:latest as build-env
 
 FROM amigadev/docker-base:latest
 
-ENV CROSS_PFX ppc-morphos
-ENV OS_NAME MorphOS
+ENV CROSS_PFX ${BUILD_PFX}
+ENV OS_NAME ${BUILD_OS}
 
 COPY --from=build-env /opt/${CROSS_PFX} /opt/${CROSS_PFX}
 

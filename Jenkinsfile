@@ -9,37 +9,37 @@ def notify(status){
 		replyTo: '$DEFAULT_REPLYTO',
 		subject: '$DEFAULT_SUBJECT',
 		to: '$DEFAULT_RECIPIENTS'
-	)
+	);
 }
 
 @NonCPS
 def killall_jobs() {
-	def jobname = env.JOB_NAME
-	def buildnum = env.BUILD_NUMBER.toInteger()
-	def killnums = ""
-	def job = Jenkins.instance.getItemByFullName(jobname)
-	def fixed_job_name = env.JOB_NAME.replace('%2F','/')
+	def jobname = env.JOB_NAME;
+	def buildnum = env.BUILD_NUMBER.toInteger();
+	def killnums = "";
+	def job = Jenkins.instance.getItemByFullName(jobname);
+	def fixed_job_name = env.JOB_NAME.replace('%2F','/');
 
 	for (build in job.builds) {
 		if (!build.isBuilding()) { continue; }
 		if (buildnum == build.getNumber().toInteger()) { continue; println "equals" }
 		if (buildnum < build.getNumber().toInteger()) { continue; println "newer" }
 
-		echo "Kill task = ${build}"
+		echo "Kill task = ${build}";
 
-		killnums += "#" + build.getNumber().toInteger() + ", "
+		killnums += "#" + build.getNumber().toInteger() + ", ";
 
 		build.doStop();
 	}
 
 	if (killnums != "") {
-		slackSend color: "danger", channel: "#jenkins", message: "Killing task(s) ${fixed_job_name} ${killnums} in favor of #${buildnum}, ignore following failed builds for ${killnums}"
+		slackSend color: "danger", channel: "#jenkins", message: "Killing task(s) ${fixed_job_name} ${killnums} in favor of #${buildnum}, ignore following failed builds for ${killnums}";
 	}
-	echo "Done killing"
+	echo "Done killing";
 }
 
-def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, BUILD_NEXT) {
-	def fixed_job_name = env.JOB_NAME.replace('%2F','/')
+def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, BUILD_NEXT, BUILD_OS) {
+	def fixed_job_name = env.JOB_NAME.replace('%2F','/');
 	try {
 		checkout scm;
 
@@ -58,7 +58,7 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, BUILD_NEXT) {
 		docker.withRegistry("https://index.docker.io/v1/", "dockerhub") {
 			def customImage
 			stage("Building ${DOCKERIMAGE}:${tag}...") {
-				customImage = docker.build("${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}", "--build-arg BUILDENV=${buildenv} --network=host --pull -f ${DOCKERFILE} .");
+				customImage = docker.build("${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}", "--build-arg BUILDENV=${buildenv} --build-arg BUILD_OS=${BUILD_OS} --build-arg BUILD_PFX=${tag} --network=host --pull -f ${DOCKERFILE} .");
 			}
 
 			stage("Pushing to docker hub registry...") {
@@ -90,14 +90,14 @@ node('master') {
 	
 	checkout scm;
 
-	def branches = [:]
+	def branches = [:];
 	def project = readJSON file: "JenkinsEnv.json";
 
 	if (BUILD_IMAGE.equals('all')) {
 		project.builds.each { v ->
 			branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = { 
 				node {
-					buildStep(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.BuildIfSuccessful)
+					buildStep(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.BuildIfSuccessful, v.BuildParam);
 				}
 			}
 		}
@@ -107,7 +107,7 @@ node('master') {
 			if ("${v.DockerTag}".equals("${BUILD_IMAGE}")) {
 				branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = { 
 					node {
-						buildStep(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.BuildIfSuccessful)
+						buildStep(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.BuildIfSuccessful, v.BuildParam);
 					}
 				}
 			}

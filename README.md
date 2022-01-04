@@ -17,17 +17,17 @@ MorphOS 3.9+ | MorphOS Team SDK 3.14 - gcc 9 | **Yes**
 
 ## Build the Docker container
 
-Example for AROSv1 x86_64
+Example for AmigaOS 4.x toolchain:
+```
+docker build -t "amigadev/crosstools:ppc-amigaos" --build-arg BUILD_OS=AmigaOS --build-arg BUILD_PFX=ppc-amigaos -f Dockerfile .
+```
+For other toolchains, use the appropriate parameters:
 
-docker build -t "amigadev/crosstools:x86_64-aros" --rm -f x86_64-aros.docker .
+- AmigaOS 3.x (M680x0): `--build-arg BUILD_OS=AmigaOS --build-arg BUILD_PFX=m68k-amigaos`
 
-For other toolchains, use the appropriate Dockerfile:
+- AmigaOS 4.x (PPC): `--build-arg BUILD_OS=AmigaOS --build-arg BUILD_PFX=ppc-amigaos`
 
-- AmigaOS 3.x (M680x0): m68k-amigaos.docker
-
-- AmigaOS 4.x (PPC): ppc-amigaos.docker
-
-- MorphOS (PPC): ppc-morphos.docker
+- MorphOS (PPC): `--build-arg BUILD_OS=MorphOS --build-arg BUILD_PFX=ppc-morphos`
 
 ## Run the Docker container for compiling a third party application
 
