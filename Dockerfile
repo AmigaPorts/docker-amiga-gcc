@@ -50,4 +50,7 @@ RUN ln -s /usr/share/cmake-`cmake --version|awk '{ print $3;exit }'|awk -F. '{pr
 ENV CMAKE_TOOLCHAIN_FILE ${CROSS_ROOT}/lib/${CROSS_PFX}.cmake
 ENV CMAKE_PREFIX_PATH /opt/${CROSS_PFX}:/opt/${CROSS_PFX}/usr
 ENV PATH ${PATH}:${CROSS_ROOT}/bin
+
+COPY platforms/${CROSS_PFX}/prep.sh prep.sh
+RUN ./prep.sh && rm -rf prep.sh
 # END COMMON
