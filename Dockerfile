@@ -18,7 +18,6 @@ MAINTAINER Marlon Beijer "marlon@amigadev.com"
 RUN apt update && apt install -y libtool automake autoconf && apt autoremove -y
 RUN echo ${CROSS_PFX}
 RUN echo "root:root" | chpasswd
-RUN chmod 777 -R /opt/${CROSS_PFX}
 RUN ln -s /opt/${CROSS_PFX} /tools
 ENV CROSS_ROOT /opt/${CROSS_PFX}
 
@@ -53,4 +52,5 @@ ENV PATH ${PATH}:${CROSS_ROOT}/bin
 
 COPY platforms/${CROSS_PFX}/prep.sh prep.sh
 RUN ./prep.sh && rm -rf prep.sh
+RUN chmod 777 -R /opt/${CROSS_PFX}
 # END COMMON
