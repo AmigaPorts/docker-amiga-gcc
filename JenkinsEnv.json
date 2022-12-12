@@ -11,6 +11,14 @@
         {
             "DockerRoot": "amigadev",
             "DockerImage": "crosstools",
+            "DockerTag": "m68k-amigaos-gcc10",
+            "Dockerfile": "Dockerfile",
+            "BuildIfSuccessful": "",
+            "BuildParam": "AmigaOS"
+        },
+        {
+            "DockerRoot": "amigadev",
+            "DockerImage": "crosstools",
             "DockerTag": "ppc-amigaos",
             "Dockerfile": "Dockerfile",
             "BuildIfSuccessful": "",
