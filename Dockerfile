@@ -7,8 +7,9 @@ FROM amigadev/docker-base:latest
 
 ARG BUILD_OS
 ARG BUILD_PFX
+ARG PREFIX
 
-ENV CROSS_PFX $BUILD_PFX
+ENV CROSS_PFX $PREFIX
 ENV OS_NAME $BUILD_OS
 
 COPY --from=build-env /opt/${CROSS_PFX} /opt/${CROSS_PFX}
