@@ -16,7 +16,7 @@ COPY --from=build-env /opt/${CROSS_PFX} /opt/${CROSS_PFX}
 
 # START COMMON
 MAINTAINER Marlon Beijer "marlon@amigadev.com"
-RUN apt update && apt install -y libtool automake autoconf && apt autoremove -y
+RUN apt update && apt install -y libtool automake autoconf && apt -y full-upgrade && apt autoremove -y
 RUN echo ${CROSS_PFX}
 RUN echo "root:root" | chpasswd
 RUN ln -s /opt/${CROSS_PFX} /tools
@@ -45,6 +45,7 @@ RUN ln -sf ${CROSS_ROOT}/bin/${CROSS_PFX}-as /usr/bin/as && \
 
 COPY dependencies/toolchains/${CROSS_PFX}.cmake ${CROSS_ROOT}/lib/
 COPY dependencies/toolchains/Modules/${CROSS_PFX} /CMakeModules
+RUN cmake --version
 RUN mv -fv /CMakeModules/* /usr/share/cmake-`cmake --version|awk '{ print $3;exit }'|awk -F. '{print $1"."$2}'`/Modules/
 RUN ln -s /usr/share/cmake-`cmake --version|awk '{ print $3;exit }'|awk -F. '{print $1"."$2}'`/Modules/Platform/Generic.cmake /usr/share/cmake-`cmake --version|awk '{ print $3;exit }'|awk -F. '{print $1"."$2}'`/Modules/Platform/${OS_NAME}.cmake
 ENV CMAKE_TOOLCHAIN_FILE ${CROSS_ROOT}/lib/${CROSS_PFX}.cmake
