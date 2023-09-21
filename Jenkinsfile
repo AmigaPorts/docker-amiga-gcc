@@ -41,6 +41,7 @@ def killall_jobs() {
 def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, BUILD_NEXT, BUILD_OS) {
 	def fixed_job_name = env.JOB_NAME.replace('%2F','/');
 	try {
+		sh "rm -rfv ./*"
 		checkout scm;
 
 		def buildenv = '';
