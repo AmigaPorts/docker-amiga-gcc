@@ -7,7 +7,7 @@ set -e
 export TARGET='m68k-amigaos-gcc10'
 export SYSROOT=/opt/${TARGET}/usr
 export M68K_CPU="-m68040 -mhard-float"
-export M68K_COMMON="-s -ffast-math -fomit-frame-pointer -noixemul"
+export M68K_COMMON="-s -ffast-math -fomit-frame-pointer"
 export M68K_CFLAGS="${CFLAGS} ${M68K_CPU} ${M68K_COMMON}"
 export M68K_CXXFLAGS="${CXXFLAGS} ${M68K_CPU} ${M68K_COMMON}"
 export CURPATH="${PWD}"

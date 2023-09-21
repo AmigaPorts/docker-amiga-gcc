@@ -38,7 +38,7 @@ def killall_jobs() {
 	echo "Done killing";
 }
 
-def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, BUILD_NEXT, BUILD_OS) {
+def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, BUILD_NEXT, BUILD_OS, PREFIX) {
 	def fixed_job_name = env.JOB_NAME.replace('%2F','/');
 	try {
 		sh "rm -rfv ./*"
@@ -56,10 +56,14 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, BUILD_NEXT, BUILD
 			throw new Exception("Invalid branch, stopping build!");
 		}
 
+		if (PREFIX.equals('')) {
+			PREFIX = "${tag}";
+		}
+
 		docker.withRegistry("https://index.docker.io/v1/", "dockerhub") {
 			def customImage
 			stage("Building ${DOCKERIMAGE}:${tag}...") {
-				customImage = docker.build("${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}", "--build-arg BUILDENV=${buildenv} --build-arg BUILD_OS=${BUILD_OS} --build-arg BUILD_PFX=${tag} --network=host --pull -f ${DOCKERFILE} .");
+				customImage = docker.build("${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}", "--build-arg BUILDENV=${buildenv} --build-arg BUILD_OS=${BUILD_OS} --build-arg BUILD_PFX=${tag} --build-arg PREFIX=${PREFIX} --network=host --pull -f ${DOCKERFILE} .");
 			}
 
 			stage("Pushing to docker hub registry...") {
@@ -98,7 +102,7 @@ node('master') {
 		project.builds.each { v ->
 			branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = { 
 				node {
-					buildStep(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.BuildIfSuccessful, v.BuildParam);
+					buildStep(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.BuildIfSuccessful, v.BuildParam, v.Prefix);
 				}
 			}
 		}
@@ -108,7 +112,7 @@ node('master') {
 			if ("${v.DockerTag}".equals("${BUILD_IMAGE}")) {
 				branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = { 
 					node {
-						buildStep(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.BuildIfSuccessful, v.BuildParam);
+						buildStep(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.BuildIfSuccessful, v.BuildParam, v.Prefix);
 					}
 				}
 			}
