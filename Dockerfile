@@ -1,7 +1,8 @@
 ARG BUILD_OS
 ARG BUILD_PFX
 
-FROM amigadev/${BUILD_PFX}:latest as build-env
+FROM --platform=$TARGETPLATFORM amigadev/${BUILD_PFX}:latest as build-env
+ARG TARGETPLATFORM
 
 FROM amigadev/docker-base:latest
 

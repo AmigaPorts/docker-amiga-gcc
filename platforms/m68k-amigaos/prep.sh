@@ -24,7 +24,7 @@ cd "${SUBMODULES}"
 
 # SDL1.2
 if [ ! -d "${SUBMODULES}/SDL" ]; then
-	git clone https://github.com/AmigaPorts/SDL.git "${SUBMODULES}"/SDL
+	git clone https://github.com/AmigaPorts/SDL_old.git "${SUBMODULES}"/SDL
 fi
 cd "${SUBMODULES}"/SDL
 git checkout SDL-1.2-AmigaOS3
