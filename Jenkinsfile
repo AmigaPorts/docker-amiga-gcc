@@ -132,7 +132,7 @@ def steps(v) {
 		platforms["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}_${p}"] = {
 			stage("Build ${p} version") {
 				node(p) {
-					buildStep(v.DockerRoot, v.DockerImage, "${v.DockerTag}_${p}", v.Dockerfile, [], v.BuildParam)
+					buildStep(v.DockerRoot, v.DockerImage, "${v.DockerTag}_${p}", v.Dockerfile, [], v.BuildParam, v.Prefix);
 				}
 			}
 		}
@@ -142,7 +142,7 @@ def steps(v) {
 
 	stage('Build multi-arch manifest') {
 		node() {
-			buildManifest(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.Platforms, v.BuildIfSuccessful)
+			buildManifest(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.Platforms, v.BuildIfSuccessful);
 		}
 	}
 }
