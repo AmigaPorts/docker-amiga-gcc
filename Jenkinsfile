@@ -38,7 +38,7 @@ def killall_jobs() {
 	echo "Done killing";
 }
 
-def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, BUILD_NEXT, BUILD_OS, PREFIX) {
+def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_NEXT, BUILD_OS, PREFIX) {
 	def fixed_job_name = env.JOB_NAME.replace('%2F','/');
 	try {
 		sh "rm -rfv ./*"
@@ -63,7 +63,7 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, BUILD_NEXT, BUILD
 		docker.withRegistry("https://index.docker.io/v1/", "dockerhub") {
 			def customImage
 			stage("Building ${DOCKERIMAGE}:${tag}...") {
-				customImage = docker.build("${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}", "--build-arg BUILDENV=${buildenv} --build-arg BUILD_OS=${BUILD_OS} --build-arg BUILD_PFX=${tag} --build-arg PREFIX=${PREFIX} --network=host --pull -f ${DOCKERFILE} .");
+				customImage = docker.build("${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}_${EXTRATAG}", "--build-arg BUILDENV=${buildenv} --build-arg BUILD_OS=${BUILD_OS} --build-arg BUILD_PFX=${tag} --build-arg PREFIX=${PREFIX} --network=host --pull -f ${DOCKERFILE} .");
 			}
 
 			stage("Pushing to docker hub registry...") {
@@ -132,7 +132,7 @@ def steps(v) {
 		platforms["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}_${p}"] = {
 			stage("Build ${p} version") {
 				node(p) {
-					buildStep(v.DockerRoot, v.DockerImage, "${v.DockerTag}_${p}", v.Dockerfile, [], v.BuildParam, v.Prefix);
+					buildStep(v.DockerRoot, v.DockerImage, v.DockerTag, p, v.Dockerfile, [], v.BuildParam, v.Prefix);
 				}
 			}
 		}
