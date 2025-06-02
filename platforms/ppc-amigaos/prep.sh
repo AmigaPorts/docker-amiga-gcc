@@ -18,7 +18,7 @@ git clone https://github.com/madler/zlib.git "${SUBMODULES}"/zlib
 rm -rf "${SUBMODULES}"/zlib/build
 mkdir -p "${SUBMODULES}"/zlib/build
 cd "${SUBMODULES}"/zlib/build
-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${SYSROOT} -DZLIB_BUILD_TESTING=OFF -DTOOLCHAIN_COMMON="${M68K_COMMON} -O3 -fno-exceptions -w -DBIG_ENDIAN -DAMIGA -fpermissive -std=c++14"
+cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${SYSROOT} -DZLIB_BUILD_TESTING=OFF -DZLIB_BUILD_SHARED=OFF -DTOOLCHAIN_COMMON="${M68K_COMMON} -O3 -fno-exceptions -w -DBIG_ENDIAN -DAMIGA -fpermissive -std=c++14"
 cmake --build . --config Release --target install -- -j$(getconf _NPROCESSORS_ONLN)
 cd "${SUBMODULES}"
 
