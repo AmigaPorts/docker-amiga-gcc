@@ -47,7 +47,8 @@
             "Prefix": "",
             "Dockerfile": "Dockerfile",
             "Platforms": [
-                "amd64"
+                "amd64",
+		"arm64"
             ],
             "BuildIfSuccessful": [],
             "BuildParam": "MorphOS"
