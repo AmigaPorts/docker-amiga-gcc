@@ -1,0 +1,30 @@
+diff --git a/src/timer/amigaos/SDL_systimer.c b/src/timer/amigaos/SDL_systimer.c
+--- a/src/timer/amigaos/SDL_systimer.c
++++ b/src/timer/amigaos/SDL_systimer.c
+@@ -71,7 +71,7 @@
+ extern struct ExecBase *SysBase;
+ 
+ static struct timeval basetime;
+-struct Library *TimerBase;
++struct Device *TimerBase;
+ 
+ struct Task *OwnerTask;
+ struct timerequest *TimerReq[2];         /* Local copy! */
+@@ -163,7 +163,7 @@ gettimerbase() {
+ 			/* Open with UNIT_VBLANK, but any unit can be used */
+ 			if ( !(error = OpenDevice(TIMERNAME, UNIT_MICROHZ, (struct IORequest *)TimerIO_2, 0L))) {
+ 				/* Issue the command and wait for it to finish, then get the reply */
+-				TimerBase = (struct Library *)TimerIO_2->tr_node.io_Device;
++				TimerBase = TimerIO_2->tr_node.io_Device;
+ 
+ 				TimerReq[0] = TimerIO_2;
+ 				TimerReq[1] = TimerIO_2;
+@@ -234,7 +234,7 @@ void SDL_Delay(Uint32 ms) {
+ /* Data to handle a single periodic alarm */
+ static int timer_alive = 0;
+ static SDL_Thread *timer_thread = NULL;
+-struct Library *TimerBase;
++struct Device *TimerBase;
+ 
+ int RunTimer(void *unused) {
+ 	struct timeval tv;

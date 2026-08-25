@@ -29,6 +29,9 @@ fi
 cd "${SUBMODULES}"/SDL
 git checkout SDL-1.2-AmigaOS3
 git pull
+if ! git apply --reverse --check /patches/sdl-old-timerbase-device.patch 2>/dev/null; then
+	git apply /patches/sdl-old-timerbase-device.patch
+fi
 rm -rf "${SUBMODULES}"/SDL/build
 mkdir -p "${SUBMODULES}"/SDL/build
 cd "${SUBMODULES}"/SDL/build
