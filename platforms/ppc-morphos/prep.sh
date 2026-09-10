@@ -22,6 +22,18 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${SYSROOT} -DZLIB_BUI
 cmake --build . --config Release --target install -- -j$(getconf _NPROCESSORS_ONLN)
 cd "${SUBMODULES}"
 
+# codesets SDK 6.22
+mkdir -p "${SUBMODULES}"/codesets
+cd "${SUBMODULES}"/codesets
+wget https://github.com/jens-maus/libcodesets/releases/download/6.22/codesets-6.22.lha -O codesets.lha
+echo "029d3bf9dd8b85bef6f0ccb58c0b4123d16cc5042a1c13519698016f6966750c  codesets.lha" | sha256sum -c -
+lha -x codesets.lha
+mkdir -p "${SYSROOT}"/usr/include "${SYSROOT}"/usr/share/doc/codesets
+cp -fvr codesets/Developer/include/* "${SYSROOT}"/usr/include/
+cp -fv codesets/COPYING codesets/ReadMe "${SYSROOT}"/usr/share/doc/codesets/
+cd "${SUBMODULES}"
+rm -rf codesets
+
 # SDL1.2
 rm -rf powersdl_sdk*
 wget http://aminet.net/dev/misc/powersdl_sdk.lha -O powersdl_sdk.lha
