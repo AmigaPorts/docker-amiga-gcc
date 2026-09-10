@@ -22,6 +22,37 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${SYSROOT} -DZLIB_BUI
 cmake --build . --config Release --target install -- -j$(getconf _NPROCESSORS_ONLN)
 cd "${SUBMODULES}"
 
+# AmiSSL SDK 5.27
+mkdir -p "${SUBMODULES}"/amissl
+cd "${SUBMODULES}"/amissl
+wget https://github.com/jens-maus/amissl/releases/download/5.27/AmiSSL-5.27-SDK.lha -O amissl.lha
+echo "5003bef8c5930354d16b0ce7196d71b2811891c42fad38a9238c5ce4098ad42a  amissl.lha" | sha256sum -c -
+lha -x amissl.lha
+# Use the SDK search paths so -mcrt selects the matching auto-init library.
+SDKROOT=/opt/${TARGET}/${TARGET}/SDK/local
+mkdir -p "${SDKROOT}"/common/include "${SDKROOT}"/common/lib "${SDKROOT}"/newlib/lib "${SDKROOT}"/clib2/lib
+cp -fvr AmiSSL/Developer/include/* "${SDKROOT}"/common/include/
+cp -fv AmiSSL/Developer/lib/AmigaOS4/libamisslstubs.a "${SDKROOT}"/common/lib/
+cp -fv AmiSSL/Developer/lib/AmigaOS4/newlib/libamisslauto.a "${SDKROOT}"/newlib/lib/
+cp -fv AmiSSL/Developer/lib/AmigaOS4/clib2/libamisslauto.a "${SDKROOT}"/clib2/lib/
+mkdir -p "${SYSROOT}"/share/doc/amissl
+cp -fv AmiSSL/Doc/AmiSSL.doc AmiSSL/Developer/README-SDK "${SYSROOT}"/share/doc/amissl/
+cp -fv /usr/share/common-licenses/Apache-2.0 "${SYSROOT}"/share/doc/amissl/LICENSE
+cd "${SUBMODULES}"
+rm -rf amissl
+
+# codesets SDK 6.22
+mkdir -p "${SUBMODULES}"/codesets
+cd "${SUBMODULES}"/codesets
+wget https://github.com/jens-maus/libcodesets/releases/download/6.22/codesets-6.22.lha -O codesets.lha
+echo "029d3bf9dd8b85bef6f0ccb58c0b4123d16cc5042a1c13519698016f6966750c  codesets.lha" | sha256sum -c -
+lha -x codesets.lha
+cp -fvr codesets/Developer/include/* "${SDKROOT}"/common/include/
+mkdir -p "${SYSROOT}"/share/doc/codesets
+cp -fv codesets/COPYING codesets/ReadMe "${SYSROOT}"/share/doc/codesets/
+cd "${SUBMODULES}"
+rm -rf codesets
+
 #MiniGL
 rm -rf MiniGL
 mkdir -p "${SUBMODULES}"/MiniGL
