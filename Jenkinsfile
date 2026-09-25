@@ -69,7 +69,7 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 
 		stage("Building ${DOCKERIMAGE}:${tag} with Podman...") {
 			sh """
-				mkdir $PWD/tmp/
+				mkdir -p $PWD/tmp/
 				podman build \
 					--root $PWD/tmp/ \
 					--build-arg BUILDENV=${buildenv} \
