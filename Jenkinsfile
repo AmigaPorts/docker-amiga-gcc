@@ -53,26 +53,13 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 			buildenv = 'development';
 			tag = "${DOCKERTAG}-dev";
 		} else {
-			//throw new Exception("Invalid branch, stopping build!");
-			buildenv = 'development';
-			tag = "${DOCKERTAG}";
+			throw new Exception("Invalid branch, stopping build!");
 		}
 
 		if (PREFIX.equals('')) {
 			PREFIX = "${tag}";
 		}
-		/* OLD WAY
-		docker.withRegistry("https://index.docker.io/v1/", "dockerhub") {
-			def customImage
-			stage("Building ${DOCKERIMAGE}:${tag}...") {
-				customImage = docker.build("${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}_${EXTRATAG}", "--build-arg BUILDENV=${buildenv} --build-arg BUILD_OS=${BUILD_OS} --build-arg BUILD_PFX=${tag} --build-arg PREFIX=${PREFIX} --network=host --pull -f ${DOCKERFILE} .");
-			}
 
-			stage("Pushing to docker hub registry...") {
-				customImage.push();
-			}
-		}
-		*/
 		def imageName = "${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}_${EXTRATAG}"
 		def customImage
 
