@@ -38,7 +38,7 @@ def killall_jobs() {
 	echo "Done killing";
 }
 
-def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_NEXT, BUILD_OS, PREFIX) {
+def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_NEXT, BUILD_OS, PREFIX, buildVersion) {
 	def fixed_job_name = env.JOB_NAME.replace('%2F','/');
 	try {
 		sh "rm -rfv ./*"
@@ -60,12 +60,18 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 			PREFIX = "${tag}";
 		}
 
-		def imageName = "${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}_${EXTRATAG}"
-		def customImage
+		if (!buildVersion.equals('')) {
+			tag = "${tag}-${buildVersion}";
+		}
+
+		def imageName = "${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}_${EXTRATAG}";
+		def customImage;
 
 		stage("Building ${DOCKERIMAGE}:${tag} with Podman...") {
 			sh """
+				mkdir $PWD/tmp/
 				podman build \
+					--root $PWD/tmp/ \
 					--build-arg BUILDENV=${buildenv} \
 					--build-arg BUILD_OS=${BUILD_OS} \
 					--build-arg BUILD_PFX=${tag} \
@@ -85,12 +91,12 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 			"""
 
 			// Create the Jenkins Docker Pipeline image object.
-			customImage = docker.image(imageName)
+			customImage = docker.image(imageName);
 		}
 
 		docker.withRegistry("https://index.docker.io/v1/", "dockerhub") {
 			stage("Pushing to docker hub registry...") {
-				customImage.push()
+				customImage.push();
 			}
 		}
 	} catch(err) {
@@ -100,7 +106,7 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 	}
 }
 
-def buildManifest(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, PLATFORMS, BUILD_NEXT) {
+def buildManifest(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, PLATFORMS, BUILD_NEXT, buildVersion) {
 	def fixed_job_name = env.JOB_NAME.replace('%2F','/')
 	try {
 		checkout scm;
@@ -115,6 +121,10 @@ def buildManifest(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, PLATFORMS, BU
 			tag = "${DOCKERTAG}-dev";
 		} else {
 			throw new Exception("Invalid branch, stopping build!");
+		}
+
+		if (!buildVersion.equals('')) {
+			tag = "${tag}-${buildVersion}";
 		}
 
 		docker.withRegistry("https://index.docker.io/v1/", "dockerhub") {
@@ -148,14 +158,14 @@ def buildManifest(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, PLATFORMS, BU
 	}
 }
 
-def steps(v) {
+def steps(v, buildVersion) {
 	def platforms = [:];
 
 	v.Platforms.each { p -> 
 		platforms["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}_${p}"] = {
 			stage("Build ${p} version") {
 				node(p) {
-					buildStep(v.DockerRoot, v.DockerImage, v.DockerTag, p, v.Dockerfile, [], v.BuildParam, v.Prefix);
+					buildStep(v.DockerRoot, v.DockerImage, v.DockerTag, p, v.Dockerfile, [], v.BuildParam, v.Prefix, buildVersion);
 				}
 			}
 		}
@@ -165,7 +175,7 @@ def steps(v) {
 
 	stage('Build multi-arch manifest') {
 		node() {
-			buildManifest(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.Platforms, v.BuildIfSuccessful);
+			buildManifest(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.Platforms, v.BuildIfSuccessful, buildVersion);
 		}
 	}
 }
@@ -188,7 +198,7 @@ node('master') {
 	if (BUILD_IMAGE.equals('all')) {
 		project.builds.each { v ->
 			branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = { 
-				steps(v);
+				steps(v, BUILD_VERSION);
 			}
 		}
 	} else {
@@ -196,7 +206,7 @@ node('master') {
 		project.builds.each { v ->
 			if ("${v.DockerTag}".equals("${BUILD_IMAGE}")) {
 				branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = { 
-					steps(v);
+					steps(v, BUILD_VERSION);
 				}
 			}
 		}
