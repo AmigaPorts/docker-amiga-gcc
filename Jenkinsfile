@@ -55,7 +55,7 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 		} else {
 			//throw new Exception("Invalid branch, stopping build!");
 			buildenv = 'development';
-			tag = "${DOCKERTAG}-dev";
+			tag = "${DOCKERTAG}";
 		}
 
 		if (PREFIX.equals('')) {
