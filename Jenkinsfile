@@ -170,7 +170,7 @@ def steps(v) {
 	}
 }
 
-properties([[$class: 'ParametersDefinitionProperty', parameterDefinitions: [[$class: 'StringParameterDefinition', name: 'BUILD_IMAGE', defaultValue: 'all']]]])
+properties([[$class: 'ParametersDefinitionProperty', parameterDefinitions: [[$class: 'StringParameterDefinition', name: 'BUILD_IMAGE', defaultValue: 'all'],[$class: 'StringParameterDefinition', name: 'BUILD_VERSION', defaultValue: '']]]])
 
 node('master') {
 
