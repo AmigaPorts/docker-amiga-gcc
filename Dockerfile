@@ -42,7 +42,6 @@ RUN apt update && \
         zlib1g-dev \
         libpng-dev \
         libmpfr-dev \
-        libmpc3 \
         libmpc-dev \
         libtool \
         libfl-dev && \
