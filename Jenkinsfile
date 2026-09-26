@@ -69,9 +69,9 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 		docker.withRegistry("https://index.docker.io/v1/", "dockerhub") {
 			stage("Building ${DOCKERIMAGE}:${tag} with Podman...") {
 				sh """
-					mkdir -p $PWD/tmp/
+					mkdir -p $PWD/tmp/podman/
 					podman build \
-						--root $PWD/tmp/ \
+						--root $PWD/tmp/podman/ \
 						--build-arg BUILDENV=${buildenv} \
 						--build-arg BUILD_OS=${BUILD_OS} \
 						--build-arg BUILD_PFX=${tag} \
@@ -83,19 +83,24 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 						-t ${imageName} \
 						.
 
-					podman push \
+					podman \
+						--root $PWD/tmp/podman/ \
+						push \
 						${imageName} \
 						docker-daemon:${imageName}
 
-					podman image rm -f ${imageName}
+					podman \
+						--root $PWD/tmp/podman/ \
+						image rm -f ${imageName}
+
+					rm -rf $PWD/tmp/podman/
 				"""
-				echo("Podman -> Docker");
+
 				// Create the Jenkins Docker Pipeline image object.
 				customImage = docker.image(imageName);
 			}
 
 			stage("Pushing to docker hub registry...") {
-				echo("Docker -> Hub");
 				customImage.push();
 			}
 		}
