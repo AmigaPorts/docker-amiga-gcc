@@ -66,35 +66,34 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 
 		def imageName = "${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}_${EXTRATAG}";
 		def customImage;
-
-		stage("Building ${DOCKERIMAGE}:${tag} with Podman...") {
-			sh """
-				mkdir -p $PWD/tmp/
-				podman build \
-					--root $PWD/tmp/ \
-					--build-arg BUILDENV=${buildenv} \
-					--build-arg BUILD_OS=${BUILD_OS} \
-					--build-arg BUILD_PFX=${tag} \
-					--build-arg PREFIX=${PREFIX} \
-					--network=host \
-					--pull \
-					--squash-all \
-					-f ${DOCKERFILE} \
-					-t ${imageName} \
-					.
-
-				podman push \
-					${imageName} \
-					docker-daemon:${imageName}
-
-				podman image rm -f ${imageName}
-			"""
-
-			// Create the Jenkins Docker Pipeline image object.
-			customImage = docker.image(imageName);
-		}
-
 		docker.withRegistry("https://index.docker.io/v1/", "dockerhub") {
+			stage("Building ${DOCKERIMAGE}:${tag} with Podman...") {
+				sh """
+					mkdir -p $PWD/tmp/
+					podman build \
+						--root $PWD/tmp/ \
+						--build-arg BUILDENV=${buildenv} \
+						--build-arg BUILD_OS=${BUILD_OS} \
+						--build-arg BUILD_PFX=${tag} \
+						--build-arg PREFIX=${PREFIX} \
+						--network=host \
+						--pull \
+						--squash-all \
+						-f ${DOCKERFILE} \
+						-t ${imageName} \
+						.
+
+					podman push \
+						${imageName} \
+						docker-daemon:${imageName}
+
+					podman image rm -f ${imageName}
+				"""
+
+				// Create the Jenkins Docker Pipeline image object.
+				customImage = docker.image(imageName);
+			}
+
 			stage("Pushing to docker hub registry...") {
 				customImage.push();
 			}
