@@ -79,10 +79,6 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 					PODMAN_RUNROOT="\$(mktemp -d /tmp/podman-${tag}_${EXTRATAG}-run.XXXXXX)"
 
 					cleanup_podman() {
-						echo
-						echo "=== Cleaning Podman storage ==="
-						echo
-
 						set +e
 
 						#
@@ -143,36 +139,12 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 						-t ${imageName} \
 						.
 
-					echo
-					echo "=== Podman image ==="
-					echo
-
-					podman \
-						--root "\${PODMAN_ROOT}" \
-						--runroot "\${PODMAN_RUNROOT}" \
-						image inspect \
-						${imageName}
-
-					echo
-					echo "=== Copying Podman image to Docker daemon ==="
-					echo
-
 					podman \
 						--root "\${PODMAN_ROOT}" \
 						--runroot "\${PODMAN_RUNROOT}" \
 						push \
 						${imageName} \
 						docker-daemon:${imageName}
-
-					echo
-					echo "=== Verifying Docker image ==="
-					echo
-
-					docker image inspect ${imageName}
-
-					echo
-					echo "=== Removing image from Podman storage ==="
-					echo
 
 					podman \
 						--root "\${PODMAN_ROOT}" \
@@ -206,7 +178,7 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 	}
 }
 
-def buildManifest(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, PLATFORMS, BUILD_NEXT, buildVersion) {
+def buildManifest(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, PLATFORMS, BUILD_NEXT, buildVersion, isMainImage) {
 	def fixed_job_name = env.JOB_NAME.replace('%2F','/');
 
 	try {
@@ -214,6 +186,7 @@ def buildManifest(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, PLATFORMS, BU
 
 		def buildenv = '';
 		def tag = '';
+		def tagWithoutBuildVersion = '';
 
 		if (env.BRANCH_NAME.equals('master')) {
 			buildenv = 'production';
@@ -224,6 +197,8 @@ def buildManifest(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, PLATFORMS, BU
 		} else {
 			throw new Exception("Invalid branch, stopping build!");
 		}
+
+		tagWithoutBuildVersion = tag;
 
 		if (!buildVersion.equals('')) {
 			tag = "${tag}-${buildVersion}";
@@ -248,6 +223,16 @@ def buildManifest(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, PLATFORMS, BU
 				sh(
 					"docker manifest push ${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}"
 				);
+
+				if (isMainImage) {
+					sh(
+						"docker manifest create ${DOCKER_ROOT}/${DOCKERIMAGE}:${tagWithoutBuildVersion} ${platformsString}"
+					);
+
+					sh(
+						"docker manifest push ${DOCKER_ROOT}/${DOCKERIMAGE}:${tagWithoutBuildVersion}"
+					);
+				}
 			}
 		}
 
@@ -277,7 +262,7 @@ def buildManifest(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, PLATFORMS, BU
 	}
 }
 
-def steps(v, buildVersion) {
+def steps(v, buildVersion, isMainImage) {
 	def platforms = [:];
 
 	v.Platforms.each { p ->
@@ -311,7 +296,8 @@ def steps(v, buildVersion) {
 				v.Dockerfile,
 				v.Platforms,
 				v.BuildIfSuccessful,
-				buildVersion
+				buildVersion,
+				isMainImage
 			);
 		}
 	}
@@ -330,6 +316,11 @@ properties([
 				$class: 'StringParameterDefinition',
 				name: 'BUILD_VERSION',
 				defaultValue: ''
+			],
+			[
+				$class: 'BooleanParameterDefinition',
+				name: 'IS_MAIN_IMAGE',
+				defaultValue: false
 			]
 		]
 	]
@@ -351,7 +342,7 @@ node('master') {
 	if (BUILD_IMAGE.equals('all')) {
 		project.builds.each { v ->
 			branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = {
-				steps(v, BUILD_VERSION);
+				steps(v, BUILD_VERSION, IS_MAIN_IMAGE);
 			}
 		}
 	} else {
@@ -360,7 +351,7 @@ node('master') {
 		project.builds.each { v ->
 			if ("${v.DockerTag}".equals("${BUILD_IMAGE}")) {
 				branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = {
-					steps(v, BUILD_VERSION);
+					steps(v, BUILD_VERSION, IS_MAIN_IMAGE);
 				}
 			}
 		}
