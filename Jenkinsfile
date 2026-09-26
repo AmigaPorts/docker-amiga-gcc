@@ -35,17 +35,20 @@ def killall_jobs() {
 	if (killnums != "") {
 		//slackSend color: "danger", channel: "#jenkins", message: "Killing task(s) ${fixed_job_name} ${killnums} in favor of #${buildnum}, ignore following failed builds for ${killnums}";
 	}
+
 	echo "Done killing";
 }
 
 def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_NEXT, BUILD_OS, PREFIX, buildVersion) {
 	def fixed_job_name = env.JOB_NAME.replace('%2F','/');
+
 	try {
 		sh "rm -rfv ./*"
 		checkout scm;
 
 		def buildenv = '';
 		def tag = '';
+
 		if (env.BRANCH_NAME.equals('master')) {
 			buildenv = 'production';
 			tag = "${DOCKERTAG}";
@@ -66,12 +69,69 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 
 		def imageName = "${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}_${EXTRATAG}";
 		def customImage;
+
 		docker.withRegistry("https://index.docker.io/v1/", "dockerhub") {
 			stage("Building ${DOCKERIMAGE}:${tag} with Podman...") {
 				sh """
-					mkdir -p $PWD/tmp/podman-${tag}_${EXTRATAG}/
-					podman build \
-						--root $PWD/tmp/podman-${tag}_${EXTRATAG}/ \
+					set -euo pipefail
+
+					PODMAN_ROOT="\${PWD}/tmp/podman-${tag}_${EXTRATAG}"
+					PODMAN_RUNROOT="\$(mktemp -d /tmp/podman-${tag}_${EXTRATAG}-run.XXXXXX)"
+
+					cleanup_podman() {
+						echo
+						echo "=== Cleaning Podman storage ==="
+						echo
+
+						set +e
+
+						#
+						# First let Podman clean its own isolated storage.
+						#
+						podman \
+							--root "\${PODMAN_ROOT}" \
+							--runroot "\${PODMAN_RUNROOT}" \
+							system reset \
+							--force
+
+						#
+						# force_mask=700/rootless overlay can leave directories
+						# owned by subordinate UIDs which the normal Jenkins
+						# user cannot traverse.
+						#
+						# Enter the Podman user namespace to remove anything
+						# left behind.
+						#
+						if [ -e "\${PODMAN_ROOT}" ]; then
+							podman unshare \
+								rm -rf "\${PODMAN_ROOT}"
+						fi
+
+						rm -rf "\${PODMAN_RUNROOT}"
+
+						set -e
+					}
+
+					trap cleanup_podman EXIT
+
+					mkdir -p "\${PODMAN_ROOT}"
+
+					echo
+					echo "=== Podman configuration ==="
+					echo
+					echo "Graph root: \${PODMAN_ROOT}"
+					echo "Run root:   \${PODMAN_RUNROOT}"
+					echo "Image:      ${imageName}"
+					echo
+
+					echo
+					echo "=== Building image ==="
+					echo
+
+					podman \
+						--root "\${PODMAN_ROOT}" \
+						--runroot "\${PODMAN_RUNROOT}" \
+						build \
 						--build-arg BUILDENV=${buildenv} \
 						--build-arg BUILD_OS=${BUILD_OS} \
 						--build-arg BUILD_PFX=${tag} \
@@ -83,17 +143,48 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 						-t ${imageName} \
 						.
 
+					echo
+					echo "=== Podman image ==="
+					echo
+
 					podman \
-						--root $PWD/tmp/podman-${tag}_${EXTRATAG}/ \
+						--root "\${PODMAN_ROOT}" \
+						--runroot "\${PODMAN_RUNROOT}" \
+						image inspect \
+						${imageName}
+
+					echo
+					echo "=== Copying Podman image to Docker daemon ==="
+					echo
+
+					podman \
+						--root "\${PODMAN_ROOT}" \
+						--runroot "\${PODMAN_RUNROOT}" \
 						push \
 						${imageName} \
 						docker-daemon:${imageName}
 
-					podman \
-						--root $PWD/tmp/podman-${tag}_${EXTRATAG}/ \
-						image rm -f ${imageName}
+					echo
+					echo "=== Verifying Docker image ==="
+					echo
 
-					rm -rf $PWD/tmp/podman-${tag}_${EXTRATAG}/
+					docker image inspect ${imageName}
+
+					echo
+					echo "=== Removing image from Podman storage ==="
+					echo
+
+					podman \
+						--root "\${PODMAN_ROOT}" \
+						--runroot "\${PODMAN_RUNROOT}" \
+						image rm \
+						-f \
+						${imageName}
+
+					#
+					# cleanup_podman runs automatically here because of
+					# the EXIT trap. It also runs if any command above fails.
+					#
 				"""
 
 				// Create the Jenkins Docker Pipeline image object.
@@ -105,19 +196,25 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 			}
 		}
 	} catch(err) {
-		currentBuild.result = 'FAILURE'
-		notify("Build Failed: ${fixed_job_name} #${env.BUILD_NUMBER} Target: ${DOCKER_ROOT}/${DOCKERIMAGE}:${DOCKERTAG}")
-		throw err
+		currentBuild.result = 'FAILURE';
+
+		notify(
+			"Build Failed: ${fixed_job_name} #${env.BUILD_NUMBER} Target: ${DOCKER_ROOT}/${DOCKERIMAGE}:${DOCKERTAG}"
+		);
+
+		throw err;
 	}
 }
 
 def buildManifest(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, PLATFORMS, BUILD_NEXT, buildVersion) {
-	def fixed_job_name = env.JOB_NAME.replace('%2F','/')
+	def fixed_job_name = env.JOB_NAME.replace('%2F','/');
+
 	try {
 		checkout scm;
 
 		def buildenv = '';
 		def tag = '';
+
 		if (env.BRANCH_NAME.equals('master')) {
 			buildenv = 'production';
 			tag = "${DOCKERTAG}";
@@ -135,42 +232,69 @@ def buildManifest(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, PLATFORMS, BU
 		docker.withRegistry("https://index.docker.io/v1/", "dockerhub") {
 			stage("Building ${DOCKERIMAGE}:${tag} manifest...") {
 				sh('docker version');
+
 				def platformsString = "";
+
 				PLATFORMS.each { p ->
 					sh("docker pull ${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}_${p}");
-					platformsString = "${platformsString} ${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}_${p}"
+
+					platformsString = "${platformsString} ${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}_${p}";
 				}
-				
-				sh("docker manifest create ${DOCKER_ROOT}/${DOCKERIMAGE}:${tag} ${platformsString}");
-				sh("docker manifest push ${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}");
+
+				sh(
+					"docker manifest create ${DOCKER_ROOT}/${DOCKERIMAGE}:${tag} ${platformsString}"
+				);
+
+				sh(
+					"docker manifest push ${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}"
+				);
 			}
 		}
 
-		def branches = [:]
+		def branches = [:];
 
 		BUILD_NEXT.each { v ->
-			branches["Build ${v}"] = { 
+			branches["Build ${v}"] = {
 				build "${v}/${env.BRANCH_NAME}";
 			}
 		}
 
 		parallel branches;
 	} catch(err) {
-		slackSend color: "danger", channel: "#jenkins", message: "Build Failed: ${fixed_job_name} #${env.BUILD_NUMBER} Target: ${DOCKER_ROOT}/${DOCKERIMAGE}:${tag} (<${env.BUILD_URL}|Open>)"
-		currentBuild.result = 'FAILURE'
-		notify("Build Failed: ${fixed_job_name} #${env.BUILD_NUMBER} Target: ${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}")
-		throw err
+		slackSend(
+			color: "danger",
+			channel: "#jenkins",
+			message: "Build Failed: ${fixed_job_name} #${env.BUILD_NUMBER} Target: ${DOCKER_ROOT}/${DOCKERIMAGE}:${tag} (<${env.BUILD_URL}|Open>)"
+		);
+
+		currentBuild.result = 'FAILURE';
+
+		notify(
+			"Build Failed: ${fixed_job_name} #${env.BUILD_NUMBER} Target: ${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}"
+		);
+
+		throw err;
 	}
 }
 
 def steps(v, buildVersion) {
 	def platforms = [:];
 
-	v.Platforms.each { p -> 
+	v.Platforms.each { p ->
 		platforms["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}_${p}"] = {
 			stage("Build ${p} version") {
 				node(p) {
-					buildStep(v.DockerRoot, v.DockerImage, v.DockerTag, p, v.Dockerfile, [], v.BuildParam, v.Prefix, buildVersion);
+					buildStep(
+						v.DockerRoot,
+						v.DockerImage,
+						v.DockerTag,
+						p,
+						v.Dockerfile,
+						[],
+						v.BuildParam,
+						v.Prefix,
+						buildVersion
+					);
 				}
 			}
 		}
@@ -180,12 +304,36 @@ def steps(v, buildVersion) {
 
 	stage('Build multi-arch manifest') {
 		node() {
-			buildManifest(v.DockerRoot, v.DockerImage, v.DockerTag, v.Dockerfile, v.Platforms, v.BuildIfSuccessful, buildVersion);
+			buildManifest(
+				v.DockerRoot,
+				v.DockerImage,
+				v.DockerTag,
+				v.Dockerfile,
+				v.Platforms,
+				v.BuildIfSuccessful,
+				buildVersion
+			);
 		}
 	}
 }
 
-properties([[$class: 'ParametersDefinitionProperty', parameterDefinitions: [[$class: 'StringParameterDefinition', name: 'BUILD_IMAGE', defaultValue: 'all'],[$class: 'StringParameterDefinition', name: 'BUILD_VERSION', defaultValue: '']]]])
+properties([
+	[
+		$class: 'ParametersDefinitionProperty',
+		parameterDefinitions: [
+			[
+				$class: 'StringParameterDefinition',
+				name: 'BUILD_IMAGE',
+				defaultValue: 'all'
+			],
+			[
+				$class: 'StringParameterDefinition',
+				name: 'BUILD_VERSION',
+				defaultValue: ''
+			]
+		]
+	]
+]);
 
 node('master') {
 
@@ -194,7 +342,7 @@ node('master') {
 	}
 
 	def fixed_job_name = env.JOB_NAME.replace('%2F','/');
-	
+
 	checkout scm;
 
 	def branches = [:];
@@ -202,23 +350,23 @@ node('master') {
 
 	if (BUILD_IMAGE.equals('all')) {
 		project.builds.each { v ->
-			branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = { 
+			branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = {
 				steps(v, BUILD_VERSION);
 			}
 		}
 	} else {
 		echo("Building: ${BUILD_IMAGE}");
+
 		project.builds.each { v ->
 			if ("${v.DockerTag}".equals("${BUILD_IMAGE}")) {
-				branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = { 
+				branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = {
 					steps(v, BUILD_VERSION);
 				}
 			}
 		}
 	}
-	
+
 	sh "rm -rf ./*";
 
 	parallel branches;
 }
-
