@@ -84,17 +84,18 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 						.
 
 					podman push \
-						localhost/${imageName} \
+						${imageName} \
 						docker-daemon:${imageName}
 
 					podman image rm -f ${imageName}
 				"""
-
+				echo("Podman -> Docker");
 				// Create the Jenkins Docker Pipeline image object.
 				customImage = docker.image(imageName);
 			}
 
 			stage("Pushing to docker hub registry...") {
+				echo("Docker -> Hub");
 				customImage.push();
 			}
 		}
