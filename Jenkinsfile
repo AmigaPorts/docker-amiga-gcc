@@ -84,7 +84,7 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 						.
 
 					podman push \
-						${imageName} \
+						localhost/${imageName} \
 						docker-daemon:${imageName}
 
 					podman image rm -f ${imageName}
