@@ -75,7 +75,14 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 				sh """
 					set -euo pipefail
 
-					PODMAN_ROOT="\${PWD}/tmp/podman-${tag}_${EXTRATAG}"
+					#
+					# A temporary directory outside the workspace, like the run
+					# root: a build killed before cleanup_podman runs leaves files
+					# owned by subordinate UIDs, which made every later checkout's
+					# workspace wipe fail. /var/tmp, which is usually on disk: the
+					# image layers take several GB.
+					#
+					PODMAN_ROOT="\$(mktemp -d /var/tmp/podman-${tag}_${EXTRATAG}.XXXXXX)"
 					PODMAN_RUNROOT="\$(mktemp -d /tmp/podman-${tag}_${EXTRATAG}-run.XXXXXX)"
 
 					cleanup_podman() {
