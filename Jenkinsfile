@@ -352,8 +352,12 @@ properties([
 ]);
 
 node('master') {
+	// From params, with the defaults: a new branch or pull request job runs its first
+	// build before properties() has defined BUILD_IMAGE and BUILD_VERSION.
+	def buildImage = params.BUILD_IMAGE ?: 'all';
+	def buildVersion = params.BUILD_VERSION ?: '';
 
-	if (BUILD_IMAGE.equals('all')) {
+	if (buildImage.equals('all')) {
 		killall_jobs();
 	}
 
@@ -364,19 +368,28 @@ node('master') {
 	def branches = [:];
 	def project = readJSON file: "JenkinsEnv.json";
 
-	if (BUILD_IMAGE.equals('all')) {
+	// Only master and dev publish images: a pull request only checks that
+	// JenkinsEnv.json reads, and lists what master would build from it.
+	if (env.CHANGE_ID) {
+		project.builds.each { v ->
+			echo("${v.DockerRoot}/${v.DockerImage}:${v.DockerTag} from ${v.SourceImage ?: v.DockerTag}${v.Release ? ', releases only' : ''}");
+		}
+		return;
+	}
+
+	if (buildImage.equals('all')) {
 		project.builds.each { v ->
 			branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = {
-				steps(v, BUILD_VERSION);
+				steps(v, buildVersion);
 			}
 		}
 	} else {
-		echo("Building: ${BUILD_IMAGE}");
+		echo("Building: ${buildImage}");
 
 		project.builds.each { v ->
-			if ("${v.DockerTag}".equals("${BUILD_IMAGE}")) {
+			if ("${v.DockerTag}".equals("${buildImage}")) {
 				branches["Build ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}"] = {
-					steps(v, BUILD_VERSION);
+					steps(v, buildVersion);
 				}
 			}
 		}
