@@ -4,6 +4,8 @@
             "DockerRoot": "amigadev",
             "DockerImage": "crosstools",
             "DockerTag": "m68k-amigaos",
+            "SourceImage": "m68k-amigaos-gcc16",
+            "Release": true,
             "Prefix": "m68k-amigaos",
             "Dockerfile": "Dockerfile",
             "Platforms": [
@@ -16,7 +18,22 @@
         {
             "DockerRoot": "amigadev",
             "DockerImage": "crosstools",
-            "DockerTag": "m68k-amigaos-gcc10",
+            "DockerTag": "m68k-amigaos-gcc6",
+            "SourceImage": "m68k-amigaos",
+            "Prefix": "m68k-amigaos",
+            "Dockerfile": "Dockerfile",
+            "Platforms": [
+                "amd64",
+                "arm64"
+            ],
+            "BuildIfSuccessful": [],
+            "BuildParam": "AmigaOS"
+        },
+        {
+            "DockerRoot": "amigadev",
+            "DockerImage": "crosstools",
+            "DockerTag": "m68k-amigaos-gcc16",
+            "SourceImage": "m68k-amigaos-gcc16",
             "Prefix": "m68k-amigaos",
             "Dockerfile": "Dockerfile",
             "Platforms": [

@@ -39,7 +39,7 @@ def killall_jobs() {
 	echo "Done killing";
 }
 
-def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_NEXT, BUILD_OS, PREFIX, buildVersion) {
+def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_NEXT, BUILD_OS, PREFIX, SOURCE_IMAGE, buildVersion) {
 	def fixed_job_name = env.JOB_NAME.replace('%2F','/');
 
 	try {
@@ -65,6 +65,14 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 
 		if (!buildVersion.equals('')) {
 			tag = "${tag}-${buildVersion}";
+		}
+
+		// The toolchain image to copy from: SourceImage, at the release if there is one.
+		// Without SourceImage, the Dockerfile's default from BUILD_PFX.
+		def sourceImageArg = '';
+		if (SOURCE_IMAGE) {
+			def sourceTag = buildVersion.equals('') ? 'latest' : buildVersion;
+			sourceImageArg = "--build-arg BUILD_IMAGE=docker.io/${DOCKER_ROOT}/${SOURCE_IMAGE}:${sourceTag}";
 		}
 
 		def imageName = "${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}_${EXTRATAG}";
@@ -136,6 +144,7 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 						--build-arg BUILD_OS=${BUILD_OS} \
 						--build-arg BUILD_PFX=${tag} \
 						--build-arg PREFIX=${PREFIX} \
+						${sourceImageArg} \
 						--network=host \
 						--pull \
 						--squash-all \
@@ -278,6 +287,12 @@ def buildManifest(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, PLATFORMS, BU
 }
 
 def steps(v, buildVersion) {
+	// A Release image is built only for a release, as DockerTag-BUILD_VERSION from the toolchain image tagged with it.
+	if (v.Release && buildVersion.equals('')) {
+		echo("Skipping ${v.DockerRoot}/${v.DockerImage}:${v.DockerTag}: built only with a BUILD_VERSION");
+		return;
+	}
+
 	def platforms = [:];
 
 	v.Platforms.each { p ->
@@ -293,6 +308,7 @@ def steps(v, buildVersion) {
 						[],
 						v.BuildParam,
 						v.Prefix,
+						v.SourceImage,
 						buildVersion
 					);
 				}
