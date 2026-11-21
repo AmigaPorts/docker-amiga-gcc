@@ -64,7 +64,7 @@ def buildStep(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, EXTRATAG, DOCKERFILE, BUILD_N
 		}
 
 		if (!buildVersion.equals('')) {
-			tag = "${tag}-${buildVersion}";
+			tag = "${tag}${buildVersion}";
 		}
 
 		def imageName = "${DOCKER_ROOT}/${DOCKERIMAGE}:${tag}_${EXTRATAG}";
@@ -201,7 +201,7 @@ def buildManifest(DOCKER_ROOT, DOCKERIMAGE, DOCKERTAG, DOCKERFILE, PLATFORMS, BU
 		tagWithoutBuildVersion = tag;
 
 		if (!buildVersion.equals('')) {
-			tag = "${tag}-${buildVersion}";
+			tag = "${tag}${buildVersion}";
 		}
 
 		docker.withRegistry("https://index.docker.io/v1/", "dockerhub") {
