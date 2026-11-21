@@ -16,19 +16,6 @@
         {
             "DockerRoot": "amigadev",
             "DockerImage": "crosstools",
-            "DockerTag": "m68k-amigaos-gcc10",
-            "Prefix": "m68k-amigaos",
-            "Dockerfile": "Dockerfile",
-            "Platforms": [
-                "amd64",
-                "arm64"
-            ],
-            "BuildIfSuccessful": [],
-            "BuildParam": "AmigaOS"
-        },
-        {
-            "DockerRoot": "amigadev",
-            "DockerImage": "crosstools",
             "DockerTag": "ppc-amigaos",
             "Prefix": "ppc-amigaos",
             "Dockerfile": "Dockerfile",
